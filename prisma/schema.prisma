@@ -11,46 +11,315 @@ datasource db {
 }
 
 model User {
-  id                   BigInt   @id @default(autoincrement())      // 사용자 번호 (PK)
-  name                 String   @db.VarChar(50)                    // 이름 (닉네임)
-  one_line_profile     String   @db.VarChar(50)                    // 한줄 소개
-  birth_date           DateTime                                   // 생년월일
-  Highest_grade        String?  @db.VarChar(100)                   // 최종학력 (nullable)
-  link                 String?  @db.VarChar(100)                   // 개인 링크 / 포트폴리오 링크 (nullable)
-  email                String   @unique @db.VarChar(100)           // 이메일 (중복 방지)
-  is_email_AuthN       Boolean  @default(false)                    // 이메일 인증 여부
-  inc_AuthN_file       String?  @db.VarChar(100)                   // 사업자 등록 파일 (nullable)
-  password             String   @db.VarChar(50)                    // 비밀번호
-  division             String?  @db.VarChar(100)                   // 구분 (개인/팀/기업 등) (nullable)
-  grade_status         String?  @db.VarChar(100)                   // 재학/졸업 상태 (nullable)
-  created_at           DateTime @default(now())                    // 생성일자
-  updated_at           DateTime @updatedAt                         // 수정일자
-  is_profile_completed Boolean  @default(false)                    // 프로필 입력 완료 여부
+  id                   BigInt   @id @default(autoincrement()) // 사용자 번호 (PK)
+  name                 String   @db.VarChar(50) // 이름 (닉네임)
+  one_line_profile     String   @db.VarChar(50) // 한줄 소개
+  birth_date           DateTime // 생년월일
+  Highest_grade        String?  @db.VarChar(100) // 최종학력 (nullable)
+  link                 String?  @db.VarChar(100) // 개인 링크 / 포트폴리오 링크 (nullable)
+  email                String   @unique @db.VarChar(100) // 이메일 (중복 방지)
+  is_email_AuthN       Boolean  @default(false) // 이메일 인증 여부
+  inc_AuthN_file       String?  @db.VarChar(100) // 사업자 등록 파일 (nullable)
+  password             String   @db.VarChar(50) // 비밀번호
+  division             String?  @db.VarChar(100) // 구분 (개인/팀/기업 등) (nullable)
+  grade_status         String?  @db.VarChar(100) // 재학/졸업 상태 (nullable)
+  created_at           DateTime @default(now()) // 생성일자
+  updated_at           DateTime @updatedAt // 수정일자
+  is_profile_completed Boolean  @default(false) // 프로필 입력 완료 여부
 
   // 관계
-  userDBs              UserDB[]                                    // 유저가 등록한 서비스들과의 연결
+  userDBs UserDB[] // 유저가 등록한 서비스들과의 연결
 }
 
 model Service {
-  id               BigInt   @id @default(autoincrement())        // 서비스 번호 (PK)
-  name             String   @db.VarChar(50)                      // 서비스 이름
-  sector           String   @db.VarChar(100)                     // 희망 업무 / 업종
-  is_inc_AuthN     Boolean  @default(false)                      // 사업자 등록 여부
-  recruiting_status String  @db.VarChar(100)                     // 구인구직 상태
-  profile_img      String   @db.VarChar(100)                     // 프로필 사진 URL
-  created_at       DateTime @default(now())                      // 생성일자
-  updated_at       DateTime @updatedAt                           // 수정일자
+  id                BigInt   @id @default(autoincrement())
+  name              String   @db.VarChar(50)
+  sector            String   @db.VarChar(100)
+  is_inc_AuthN      Boolean  @default(false)
+  recruiting_status String   @db.VarChar(100)
+  profile_img       String   @db.VarChar(100)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
 
   // 관계
-  userDBs          UserDB[]                                      // 이 서비스에 연결된 유저들
+  userDBs           UserDB[] // 유저 연결
+  userAreas         UserArea[] // 유저 활동지역 연결
+  recruitingNotices RecruitingNotice[] // 구인 공고 연결
+  subscribedNotices SubscribedNotice[] // 구독한 공고 연결
+  Feed              Feed[]
+  FeedHeart         FeedHeart[]
+  FeedComment       FeedComment[]
+  RecentHashtag     RecentHashtag[]
+  ActivityCard      ActivityCard[]
+  Chat              Chat[]
+  Message           Message[]
+  CoffeeChat        CoffeeChat[]
+
+  sentInterests     Interest[] @relation("InterestSender")
+  receivedInterests Interest[] @relation("InterestRecipient")
+
+  sentNetworks     Network[] @relation("NetworkSender")
+  receivedNetworks Network[] @relation("NetworkRecipient")
+
+  requestedChats CoffeeChat[] @relation("RequestedChats")
+  receivedChats  CoffeeChat[] @relation("ReceivedChats")
 }
 
 model UserDB {
-  id         BigInt  @id @default(autoincrement())               // 유저데이터베이스 번호 (PK)
-  user_id    BigInt                                              // 사용자 번호 (FK)
-  service_id BigInt                                              // 서비스 번호 (FK)
+  id         BigInt @id @default(autoincrement()) // 유저데이터베이스 번호 (PK)
+  user_id    BigInt // 사용자 번호 (FK)
+  service_id BigInt // 서비스 번호 (FK)
 
   // 관계
-  user       User    @relation(fields: [user_id], references: [id])      // 유저 연결
-  service    Service @relation(fields: [service_id], references: [id])  // 서비스 연결
+  user    User    @relation(fields: [user_id], references: [id]) // 유저 연결
+  service Service @relation(fields: [service_id], references: [id]) // 서비스 연결
+}
+
+model UserArea {
+  id           BigInt   @id @default(autoincrement()) // 유저 활동지역 번호 (PK)
+  created_at   DateTime @default(now()) // 생성일자
+  updated_at   DateTime @updatedAt // 수정일자
+  service_id   BigInt // 서비스 번호 (FK)
+  high_area_id Int // 상위 활동지역 번호 (FK)
+  low_area_id  Int // 하위 활동지역 번호 (FK)
+
+  // 관계
+  service  Service  @relation(fields: [service_id], references: [id]) // 서비스와 연결
+  highArea HighArea @relation(fields: [high_area_id], references: [id]) // 상위 지역과 연결
+  lowArea  LowArea  @relation(fields: [low_area_id], references: [id]) // 하위 지역과 연결
+}
+
+model HighArea {
+  id             Int    @id // 상위 활동지역 번호 (PK)
+  high_area_name String @db.VarChar(100) // 상위 지역 이름 (예: 서울, 경기 등)
+
+  // 관계
+  lowAreas        LowArea[] // 하위 지역들과 연결
+  userAreas       UserArea[] // 유저 활동지역들과 연결
+  recruitingAreas RecruitingArea[] // 공고 활동지역들과 연결
+}
+
+model LowArea {
+  id            Int    @id // 하위 활동지역 번호 (PK)
+  low_area_name String @db.VarChar(100) // 하위 지역 이름 (예: 강남구, 수원시 등)
+  high_area_id  Int // 상위 지역 ID (FK)
+
+  // 관계
+  highArea        HighArea         @relation(fields: [high_area_id], references: [id]) // 상위 지역과 연결
+  userAreas       UserArea[] // 유저 활동지역들과 연결
+  recruitingAreas RecruitingArea[] // 공고 활동지역들과 연결
+}
+
+model RecruitingArea {
+  id            BigInt   @id @default(autoincrement()) // 공고 활동지역 번호 (PK)
+  created_at    DateTime @default(now()) // 생성일자
+  updated_at    DateTime @updatedAt // 수정일자
+  recruiting_id BigInt // 공고 번호 (FK)
+  high_area_id  Int // 상위 활동지역 번호 (FK)
+  low_area_id   Int // 하위 활동지역 번호 (FK)
+
+  // 관계
+  recruiting RecruitingNotice @relation(fields: [recruiting_id], references: [id]) // 공고와 연결
+  highArea   HighArea         @relation(fields: [high_area_id], references: [id]) // 상위 지역과 연결
+  lowArea    LowArea          @relation(fields: [low_area_id], references: [id]) // 하위 지역과 연결
+}
+
+model RecruitingNotice {
+  id             BigInt   @id @default(autoincrement()) // 공고 번호 (PK)
+  title          String   @db.VarChar(255) // 제목
+  require        String   @db.VarChar(255) // 지원 조건
+  salary         String   @db.VarChar(255) // 급여
+  work_type      String   @db.VarChar(255) // 근무 형태
+  dead_line      DateTime // 마감일자
+  recruiting_img String   @db.VarChar(255) // 공고 이미지
+  created_at     DateTime @default(now()) // 생성일자
+  updated_at     DateTime @updatedAt // 수정일자
+  service_id     BigInt // 서비스 번호 (FK)
+
+  // 관계
+  service           Service            @relation(fields: [service_id], references: [id]) // 서비스와 연결
+  recruitingAreas   RecruitingArea[] // 공고 활동지역들과 연결
+  subscribedNotices SubscribedNotice[] // 구독한 공고 연결
+}
+
+model SubscribedNotice {
+  id                   BigInt   @id @default(autoincrement()) // 구독 번호 (PK)
+  service_id           BigInt // 서비스 번호 (FK)
+  recruiting_notice_id BigInt // 공고 번호 (FK)
+  created_at           DateTime @default(now()) // 생성일자
+
+  // 관계
+  service          Service          @relation(fields: [service_id], references: [id]) // 서비스와 연결
+  recruitingNotice RecruitingNotice @relation(fields: [recruiting_notice_id], references: [id]) // 구인 공고와 연결
+}
+
+model Feed {
+  id         BigInt   @id @default(autoincrement()) // 피드 번호 (PK)
+  feed_text  String   @db.Text // 피드 내용
+  hashtag    String   @db.VarChar(255) // 해시태그
+  heart      Int // 좋아요 수
+  created_at DateTime @default(now()) // 생성일자
+  updated_at DateTime @updatedAt // 수정일자
+  is_visible Boolean  @default(true) // 피드 공개 여부
+  service_id BigInt // 서비스 번호 (FK)
+
+  // 관계
+  service     Service       @relation(fields: [service_id], references: [id]) // 서비스와 연결
+  feedHearts  FeedHeart[] // 피드 하트들과 연결
+  FeedComment FeedComment[]
+  FeedImage   FeedImage[]
+}
+
+model FeedHeart {
+  id         BigInt   @id @default(autoincrement()) // 피드 하트 번호 (PK)
+  service_id BigInt // 서비스 번호 (FK)
+  feed_id    BigInt // 피드 번호 (FK)
+  created_at DateTime @default(now()) // 생성일자
+  updated_at DateTime @updatedAt // 수정일자
+
+  // 관계
+  service Service @relation(fields: [service_id], references: [id]) // 서비스와 연결
+  feed    Feed    @relation(fields: [feed_id], references: [id]) // 피드와 연결
+}
+
+model FeedComment {
+  id         BigInt   @id @default(autoincrement()) // 피드 댓글 번호 (PK)
+  content    String   @db.Text // 댓글 내용
+  service_id BigInt // 서비스 번호 (FK)
+  feed_id    BigInt // 피드 번호 (FK)
+  created_at DateTime @default(now()) // 생성일자
+  updated_at DateTime @updatedAt // 수정일자
+
+  // 관계
+  service Service @relation(fields: [service_id], references: [id]) // 서비스와 연결
+  feed    Feed    @relation(fields: [feed_id], references: [id]) // 피드와 연결
+}
+
+model FeedImage {
+  id         BigInt   @id @default(autoincrement()) // 피드 이미지 번호 (PK)
+  image_url  String   @db.VarChar(255) // 이미지 URL
+  feed_id    BigInt // 피드 번호 (FK)
+  created_at DateTime @default(now()) // 생성일자
+
+  // 관계
+  feed Feed @relation(fields: [feed_id], references: [id]) // 피드와 연결
+}
+
+model RecentHashtag {
+  id         BigInt   @id @default(autoincrement()) // 최근 해시태그 번호 (PK)
+  service_id BigInt // 서비스 번호 (FK)
+  hashtag    String   @db.VarChar(255) // 해시태그 내용
+  created_at DateTime @default(now()) // 생성일자
+
+  // 관계
+  service Service @relation(fields: [service_id], references: [id]) // 서비스와 연결
+}
+
+model ActivityCard {
+  id               BigInt   @id @default(autoincrement()) // 활동카드 번호 (PK)
+  one_line_profile String   @db.VarChar(255) // 소개글
+  detailed_profile String   @db.Text // 상세설명
+  link             String   @db.VarChar(100) // 링크
+  card_img         String   @db.VarChar(100) // 카드 이미지
+  created_at       DateTime @default(now()) // 생성일자
+  updated_at       DateTime @updatedAt // 수정일자
+  service_id       BigInt // 서비스 번호 (FK)
+
+  // 관계
+  service  Service   @relation(fields: [service_id], references: [id]) // 서비스와 연결
+  keywords Keyword[] // 키워드들과 연결
+}
+
+model Keyword {
+  id           BigInt @id @default(autoincrement()) // 키워드 번호 (PK)
+  keyword_text String @db.VarChar(255) // 키워드 내용
+  card_id      BigInt // 활동카드 번호 (FK)
+
+  // 관계
+  activityCard ActivityCard @relation(fields: [card_id], references: [id]) // 활동카드와 연결
+}
+
+model Interest {
+  id           BigInt  @id @default(autoincrement()) // 관심 번호 (PK)
+  is_ban       Boolean @default(false) // 차단 여부
+  sender_id    BigInt // 송신자 서비스 ID (FK)
+  recipient_id BigInt // 수신자 서비스 ID (FK)
+
+  // 관계
+  sender    Service @relation("InterestSender", fields: [sender_id], references: [id])
+  recipient Service @relation("InterestRecipient", fields: [recipient_id], references: [id])
+}
+
+model Network {
+  id           BigInt  @id @default(autoincrement()) // 네트워크 번호 (PK)
+  is_mutual    Boolean @default(false) // 맞팔로우 여부
+  sender_id    BigInt // 송신자 서비스 ID (FK)
+  recipient_id BigInt // 수신자 서비스 ID (FK)
+
+  // 관계
+  sender    Service @relation("NetworkSender", fields: [sender_id], references: [id])
+  recipient Service @relation("NetworkRecipient", fields: [recipient_id], references: [id])
+}
+
+model ChattingRoom {
+  id         BigInt   @id @default(autoincrement()) // 채팅방 ID
+  created_at DateTime @default(now()) // 생성 시간
+  is_visible Boolean  @default(false) // 첫 메시지 전송 여부
+
+  chats    Chat[] // 참여자들과의 관계
+  messages Message[] // 메시지들
+}
+
+model Chat {
+  id             BigInt   @id @default(autoincrement()) // 채팅참여 ID
+  chat_id        BigInt // 채팅방 ID (FK)
+  service_id     BigInt // 참여자 서비스 ID (FK)
+  last_read_time DateTime // 마지막 읽은 시간
+
+  // 관계
+  chatRoom ChattingRoom @relation(fields: [chat_id], references: [id])
+  service  Service      @relation(fields: [service_id], references: [id])
+}
+
+model Message {
+  id             BigInt      @id @default(autoincrement()) // 메시지 ID
+  chat_id        BigInt // 채팅방 ID (FK)
+  sender_id      BigInt // 송신자 서비스 ID (FK)
+  detail_message String // 메시지 내용
+  created_at     DateTime    @default(now()) // 전송 시간
+  type           MessageType // 메시지 타입
+
+  // 관계
+  chatRoom ChattingRoom @relation(fields: [chat_id], references: [id])
+  sender   Service      @relation(fields: [sender_id], references: [id])
+}
+
+enum MessageType {
+  TEXT
+  COFFEECHAT
+  SYSTEM
+}
+
+model CoffeeChat {
+  id           BigInt     @id @default(autoincrement()) // 커피챗 ID (PK)
+  requester_id BigInt // 요청한 유저 (FK → Service)
+  receiver_id  BigInt // 요청받은 유저 (FK → Service)
+  title        String     @db.VarChar(255) // 커피챗 제목
+  scheduled_at DateTime // 약속 시간
+  place        String     @db.Text // 약속 장소
+  status       ChatStatus @default(PENDING) // 상태 (PENDING, ACCEPTED, REJECTED, CANCELED)
+  created_at   DateTime   @default(now()) // 생성 시간
+
+  // 관계
+  requester Service  @relation("RequestedChats", fields: [requester_id], references: [id])
+  receiver  Service  @relation("ReceivedChats", fields: [receiver_id], references: [id])
+  Service   Service? @relation(fields: [serviceId], references: [id])
+  serviceId BigInt?
+}
+
+enum ChatStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELED
 }
