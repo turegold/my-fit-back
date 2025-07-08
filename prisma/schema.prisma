@@ -1,0 +1,56 @@
+// schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL") // .env 파일에 URL 작성
+}
+
+model User {
+  id                   BigInt   @id @default(autoincrement())      // 사용자 번호 (PK)
+  name                 String   @db.VarChar(50)                    // 이름 (닉네임)
+  one_line_profile     String   @db.VarChar(50)                    // 한줄 소개
+  birth_date           DateTime                                   // 생년월일
+  Highest_grade        String?  @db.VarChar(100)                   // 최종학력 (nullable)
+  link                 String?  @db.VarChar(100)                   // 개인 링크 / 포트폴리오 링크 (nullable)
+  email                String   @unique @db.VarChar(100)           // 이메일 (중복 방지)
+  is_email_AuthN       Boolean  @default(false)                    // 이메일 인증 여부
+  inc_AuthN_file       String?  @db.VarChar(100)                   // 사업자 등록 파일 (nullable)
+  password             String   @db.VarChar(50)                    // 비밀번호
+  division             String?  @db.VarChar(100)                   // 구분 (개인/팀/기업 등) (nullable)
+  grade_status         String?  @db.VarChar(100)                   // 재학/졸업 상태 (nullable)
+  created_at           DateTime @default(now())                    // 생성일자
+  updated_at           DateTime @updatedAt                         // 수정일자
+  is_profile_completed Boolean  @default(false)                    // 프로필 입력 완료 여부
+
+  // 관계
+  userDBs              UserDB[]                                    // 유저가 등록한 서비스들과의 연결
+}
+
+model Service {
+  id               BigInt   @id @default(autoincrement())        // 서비스 번호 (PK)
+  name             String   @db.VarChar(50)                      // 서비스 이름
+  sector           String   @db.VarChar(100)                     // 희망 업무 / 업종
+  is_inc_AuthN     Boolean  @default(false)                      // 사업자 등록 여부
+  recruiting_status String  @db.VarChar(100)                     // 구인구직 상태
+  profile_img      String   @db.VarChar(100)                     // 프로필 사진 URL
+  created_at       DateTime @default(now())                      // 생성일자
+  updated_at       DateTime @updatedAt                           // 수정일자
+
+  // 관계
+  userDBs          UserDB[]                                      // 이 서비스에 연결된 유저들
+}
+
+model UserDB {
+  id         BigInt  @id @default(autoincrement())               // 유저데이터베이스 번호 (PK)
+  user_id    BigInt                                              // 사용자 번호 (FK)
+  service_id BigInt                                              // 서비스 번호 (FK)
+
+  // 관계
+  user       User    @relation(fields: [user_id], references: [id])      // 유저 연결
+  service    Service @relation(fields: [service_id], references: [id])  // 서비스 연결
+}
